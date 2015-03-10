@@ -19,8 +19,25 @@ the Free Software Foundation; either version 2 of the License, or
 define( 'LOCKED_USERS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LOCKED_USERS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 
-require_once 'MetaKeys.php';
-require_once 'Plugin.php';
+require_once 'classes/MemberStatus.php';
+require_once 'classes/UserMeta.php';
+require_once 'classes/SettingsMeta.php';
+require_once 'classes/SettingsFields.php';
+require_once 'classes/Plugin.php';
+require_once 'classes/Persistence.php';
 
-/* Set up the plugin on the 'plugins_loaded' hook. */
-add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Plugin', 'plugins_loaded' ) );
+// Hook plugins_loaded where needed and we're done
+if ( ( !defined( 'DOING_AJAX' ) || !DOING_AJAX ) ) {
+	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Plugin', 'plugins_loaded' ) );
+	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'plugins_loaded' ) );
+}
+
+// ToDo: Handle hash-code in the URL
+// ToDo: User ID generation business rules 
+// ToDo: Handle roles as needed
+
+/*
+ * ID Generated from next chapter number. All members are Users.
+ * New Users added are defined to a Chapter ID.
+ * New Members aren't given passwords, temporary ID and specific unique hashcode for temporary access by email notification.
+ */
