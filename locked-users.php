@@ -32,6 +32,7 @@ if ( ( !defined( 'DOING_AJAX' ) || !DOING_AJAX ) ) {
 	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'plugins_loaded' ) );
 }
 
+// ToDo: Change from a Boolean Locked/Not Locked to a multi-state member status
 // ToDo: Handle hash-code in the URL
 // ToDo: User ID generation business rules 
 // ToDo: Handle roles as needed
