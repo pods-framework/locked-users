@@ -3,7 +3,7 @@ namespace LockedUsers;
 
 abstract class MemberStatus {
 
-	const Member = 'member';
-	const Probationary = 'probationary';
+	const Normal = 'normal';
+	const Locked = 'locked';
 	const Disabled = 'disabled';
 }

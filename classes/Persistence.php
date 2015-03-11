@@ -59,13 +59,22 @@ class Persistence {
 			SettingsMeta::OptionSectionGeneral                   // section
 		);
 
-		// URL to redirect to on unauthorized page access attempts
+		// URL to redirect to on unauthorized page access attempts for locked users
 		add_settings_field(
-			SettingsFields::RedirectURLID,             // ID
-			SettingsFields::RedirectURLTitle,          // Title
-			array( __CLASS__, 'field_redirect_url' ),  // callback
-			SettingsMeta::OptionMenuPage,              // page
-			SettingsMeta::OptionSectionGeneral         // section
+			SettingsFields::LockedRedirectURLID,              // ID
+			SettingsFields::LockedRedirectURLTitle,           // Title
+			array( __CLASS__, 'field_locked_redirect_url' ),  // callback
+			SettingsMeta::OptionMenuPage,                     // page
+			SettingsMeta::OptionSectionGeneral                // section
+		);
+
+		// URL to redirect to on unauthorized page access attempts for disabled users
+		add_settings_field(
+			SettingsFields::DisabledRedirectURLID,              // ID
+			SettingsFields::DisabledRedirectURLTitle,           // Title
+			array( __CLASS__, 'field_disabled_redirect_url' ),  // callback
+			SettingsMeta::OptionMenuPage,                       // page
+			SettingsMeta::OptionSectionGeneral                  // section
 		);
 
 		register_setting( SettingsMeta::OptionGroup, SettingsMeta::OptionName );
@@ -138,15 +147,27 @@ class Persistence {
 	/**
 	 * 
 	 */
-	static function field_redirect_url () {
+	static function field_locked_redirect_url () {
 
-		$option_value = self::get_redirect_url();
+		$option_value = self::get_locked_redirect_url();
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::RedirectURLID, $option_value );
+		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::LockedRedirectURLID, $option_value );
 		
 	}
-	
+
+	/**
+	 *
+	 */
+	static function field_disabled_redirect_url () {
+
+		$option_value = self::get_disabled_redirect_url();
+
+		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
+		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::DisabledRedirectURLID, $option_value );
+
+	}
+
 	/**
 	 * Called by the personal_options action
 	 *
@@ -161,12 +182,12 @@ class Persistence {
 			<td>
 				<fieldset>
 					<label for="<?= UserMeta::MemberStatus; ?>">
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Member; ?>" <?php checked( MemberStatus::Member, $user_status ); ?> /> Member
-						<br>
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Probationary; ?>" <?php checked( MemberStatus::Probationary, $user_status ); ?> /> Probationary
-						<br>
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Disabled; ?>" <?php checked( MemberStatus::Disabled, $user_status ); ?> /> Disabled
-						<br>
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Normal; ?>" <?php checked( MemberStatus::Normal, $user_status ); ?> /> 
+						Normal<br>
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Locked; ?>" <?php checked( MemberStatus::Locked, $user_status ); ?> />
+						Locked<br>
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Disabled; ?>" <?php checked( MemberStatus::Disabled, $user_status ); ?> />
+						Disabled<br>
 					</label> 
 					<br> 
 					<label for="<? UserMeta::Whitelist; ?>">
@@ -184,7 +205,7 @@ class Persistence {
 	 */
 	static function save_user_meta ( $user_id ) {
 
-		$status = isset( $_POST[ UserMeta::MemberStatus ] ) ? $_POST[ UserMeta::MemberStatus ] : MemberStatus::Member;
+		$status = isset( $_POST[ UserMeta::MemberStatus ] ) ? $_POST[ UserMeta::MemberStatus ] : MemberStatus::Normal;
 		$whitelist = ( isset( $_POST[ UserMeta::Whitelist ] ) ) ? $_POST[ UserMeta::Whitelist ] : '';
 
 		self::set_member_status( $user_id, $status );
@@ -213,10 +234,19 @@ class Persistence {
 	/**
 	 * @return string
 	 */
-	static function get_redirect_url () {
+	static function get_locked_redirect_url () {
 
 		$settings = get_option( SettingsMeta::OptionName, array() );
-		return $settings[ SettingsFields::RedirectURLID ];
+		return $settings[ SettingsFields::LockedRedirectURLID ];
+	}
+
+	/**
+	 * @return string
+	 */
+	static function get_disabled_redirect_url () {
+
+		$settings = get_option( SettingsMeta::OptionName, array() );
+		return $settings[ SettingsFields::DisabledRedirectURLID ];
 	}
 
 	/**
@@ -250,7 +280,7 @@ class Persistence {
 		// Default to 'member' if they don't have any meta saved at all
 		if ( '' === $meta ) {
 			
-			return MemberStatus::Member;
+			return MemberStatus::Normal;
 		}
 		
 		return $meta;

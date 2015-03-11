@@ -34,7 +34,6 @@ if ( ( !defined( 'DOING_AJAX' ) || !DOING_AJAX ) ) {
 
 // ToDo: Handle hash-code in the URL
 // ToDo: User ID generation business rules 
-// ToDo: Handle roles as needed
 
 /*
  * ID Generated from next chapter number. All members are Users.

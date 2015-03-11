@@ -11,7 +11,11 @@ abstract class SettingsFields {
 	const AuthenticationMessageID = 'locked_users_authentication_message';
 	const AuthenticationMessageTitle = 'Authentication Message';
 
-	// Page to redirect to on unauthorized page view attempts
-	const RedirectURLID = 'locked_users_redirect_url';
-	const RedirectURLTitle = 'Redirect URL';
+	// Page to redirect to on unauthorized page view attempts for locked users
+	const LockedRedirectURLID = 'locked_users_locked_redirect_url';
+	const LockedRedirectURLTitle = 'Redirect URL for locked users';
+
+	// Page to redirect to on unauthorized page view attempts for disabled users
+	const DisabledRedirectURLID = 'locked_users_disabled_redirect_url';
+	const DisabledRedirectURLTitle = 'Redirect URL for disabled users';
 }

@@ -14,26 +14,50 @@ class Plugin {
 		self::add_actions();
 		self::add_filters();
 
-		//--!! Prototype, testing only below
-		$current_user_id = get_current_user_id();
-		switch ( self::get_member_status( $current_user_id ) ) {
+		if ( is_user_logged_in() ) {
 			
-			case MemberStatus::Probationary:
+			$user_id = get_current_user_id();	
+			
+		} elseif ( false /* check for hash + user id in query vars */ ) {
+			
+			// ToDo: need to validate the user and hash info here and set the user ID properly
+			$user_id = get_current_user_id();
+			
+		} else {
+			
+			// Not logged in and not a hash code access attempt
+			return;
+		}
+		
+		switch ( self::get_member_status( $user_id ) ) {
+			
+			case MemberStatus::Locked:
 				
 				// Check the whitelists	
-				if ( !self::is_whitelisted( $current_user_id, $_SERVER[ 'REQUEST_URI' ] ) ) {
+				if ( !self::is_whitelisted( $user_id, $_SERVER[ 'REQUEST_URI' ] ) ) {
 				
-					self::access_redirect();
+					// Avoid redirect loop
+					if ( Persistence::get_locked_redirect_url() != $_SERVER[ 'REQUEST_URI' ] ) {
+						
+						wp_redirect( Persistence::get_locked_redirect_url() );
+						wp_die();
+					}
+					
 				}
 				break;
 			
 			case MemberStatus::Disabled:
 
-				// They have no access
-				self::access_redirect();
+				// They have no access but avoid a redirect loop
+				// ToDo: since we don't check any whitelist we still have a problem with disabled users and the user switching plugin, not a prob for locked users as you can whitelist the url
+				if ( $_SERVER[ 'REQUEST_URI' ] != Persistence::get_disabled_redirect_url() ) {
+					
+					wp_redirect( Persistence::get_disabled_redirect_url() );
+					wp_die();
+				}
 				break;
 
-			case MemberStatus::Member:
+			case MemberStatus::Normal:
 				
 				// Business as usual
 				break;
@@ -55,7 +79,7 @@ class Plugin {
 	static function add_filters () {
 
 		add_filter( 'allow_password_reset', array( __CLASS__, 'allow_password_reset' ), 10, 2 );
-		add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30, 3 );
+		//add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30, 3 );
 	}
 	
 	/**
@@ -68,7 +92,7 @@ class Plugin {
 	 */
 	static function allow_password_reset ( $allow, $user_id ) {
 
-		if ( MemberStatus::Member != self::get_member_status( $user_id ) ) {
+		if ( MemberStatus::Normal != self::get_member_status( $user_id ) ) {
 			return false;
 		}
 		else {
@@ -89,7 +113,7 @@ class Plugin {
 		
 		if ( is_a( $user, 'WP_User') ) {
 			
-			if ( MemberStatus::Member != self::get_member_status( $user->ID ) ) {
+			if ( MemberStatus::Normal != self::get_member_status( $user->ID ) ) {
 				
 				// ToDo: get rid of implicit dependency on Persistence
 				$user = new \WP_Error( 'Locked Users', Persistence::get_authentication_message() );
