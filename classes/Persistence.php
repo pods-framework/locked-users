@@ -12,10 +12,11 @@ class Persistence {
 	static function plugins_loaded () {
 
 		self::add_actions();
+
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	static function add_actions () {
 
@@ -49,7 +50,7 @@ class Persistence {
 			SettingsMeta::OptionMenuPage,                  // page
 			SettingsMeta::OptionSectionGeneral             // section
 		);
-		
+
 		// Authentication message on unauthorized login attempt
 		add_settings_field(
 			SettingsFields::AuthenticationMessageID,             // ID
@@ -78,6 +79,7 @@ class Persistence {
 		);
 
 		register_setting( SettingsMeta::OptionGroup, SettingsMeta::OptionName );
+
 	}
 
 	/**
@@ -85,13 +87,14 @@ class Persistence {
 	 */
 	static function admin_menu () {
 
-		add_options_page( 
+		add_options_page(
 			'Locked User Settings',              // page title
-			'Locked User Settings',              // menu title 
+			'Locked User Settings',              // menu title
 			'manage_options',                    // cap
-			SettingsMeta::OptionMenuPage,        // menu slug 
-			array( __CLASS__, 'settings_page' )  // callback 
+			SettingsMeta::OptionMenuPage,        // menu slug
+			array( __CLASS__, 'settings_page' )  // callback
 		);
+
 	}
 
 	/**
@@ -99,61 +102,67 @@ class Persistence {
 	 */
 	static function settings_page () {
 
-		?>
-		<div class="wrap">
+?>
+	<div class="wrap">
+		<div id="icon-themes" class="icon32"></div>
+		<h2>Locked User Settings</h2>
 
-			<div id="icon-themes" class="icon32"></div>
-			<h2>Locked User Settings</h2>
+		<form method="post" action="options.php">
+			<?php settings_fields( SettingsMeta::OptionGroup ); ?>
+			<?php do_settings_sections( SettingsMeta::OptionMenuPage ); ?>
+			<?php submit_button(); ?>
+		</form>
+	</div>
+<?php
 
-			<form method="post" action="options.php">
-				<?php settings_fields( SettingsMeta::OptionGroup ); ?>
-				<?php do_settings_sections( SettingsMeta::OptionMenuPage ); ?>
-				<?php submit_button(); ?>
-			</form>
-
-		</div>
-		<?php
 	}
 
 	/**
 	 *
 	 */
 	static function section_general () {
-		// No extra markup at the moment but this function must exist? 
+
+		// No extra markup at the moment but this function must exist?
+
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	static function field_global_whitelist () {
-		
+
 		$option_value = self::get_global_whitelist();
-		
+
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::GlobalWhitelistID, $option_value );
+
+		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::GlobalWhitelistID, esc_textarea( $option_value ) );
+
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	static function field_authentication_message () {
 
 		$option_value = self::get_authentication_message();
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::AuthenticationMessageID, $option_value );
+
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::AuthenticationMessageID ), esc_textarea( $option_value ) );
+
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	static function field_locked_redirect_url () {
 
 		$option_value = self::get_locked_redirect_url();
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::LockedRedirectURLID, $option_value );
-		
+
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::LockedRedirectURLID ), esc_textarea( $option_value ) );
+
 	}
 
 	/**
@@ -164,7 +173,8 @@ class Persistence {
 		$option_value = self::get_disabled_redirect_url();
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::DisabledRedirectURLID, $option_value );
+
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::DisabledRedirectURLID ), esc_textarea( $option_value ) );
 
 	}
 
@@ -174,30 +184,31 @@ class Persistence {
 	 * @param object $user The user object for the user currently being edited.
 	 */
 	static function personal_options ( $user ) {
-		
+
 		$user_status = self::get_member_status( $user->ID );
-		?>
-		<tr class="locked-users">
-			<th scope="row">Locked Users</th>
-			<td>
-				<fieldset>
-					<label for="<?= UserMeta::MemberStatus; ?>">
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Normal; ?>" <?php checked( MemberStatus::Normal, $user_status ); ?> /> 
-						Normal<br>
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Locked; ?>" <?php checked( MemberStatus::Locked, $user_status ); ?> />
-						Locked<br>
-						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Disabled; ?>" <?php checked( MemberStatus::Disabled, $user_status ); ?> />
-						Disabled<br>
-					</label> 
-					<br> 
-					<label for="<? UserMeta::Whitelist; ?>">
-						<textarea name="<?= UserMeta::Whitelist; ?>" rows="8"><?= esc_textarea( self::get_user_whitelist( $user->ID ) ); ?></textarea>
-						<br> <span class="description"><?= UserMeta::WhitelistTitle; ?></span>
-					</label>
-				</fieldset>
-			</td>
-		</tr>
-	<?php
+?>
+	<tr class="locked-users">
+		<th scope="row">Locked Users</th>
+		<td>
+			<fieldset>
+				<label for="<?php echo esc_attr( UserMeta::MemberStatus ); ?>">
+					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Normal ); ?>"<?php checked( MemberStatus::Normal, $user_status ); ?> />
+					Normal<br />
+					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Locked ); ?>"<?php checked( MemberStatus::Locked, $user_status ); ?> />
+					Locked<br />
+					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Disabled ); ?>"<?php checked( MemberStatus::Disabled, $user_status ); ?> />
+					Disabled<br />
+				</label>
+				<br>
+				<label for="<?php echo esc_attr( UserMeta::Whitelist ); ?>">
+					<textarea name="<?php echo esc_attr( UserMeta::Whitelist ); ?>" rows="8"><?php echo esc_textarea( self::get_user_whitelist( $user->ID ) ); ?></textarea>
+					<br /> <span class="description"><?php echo wp_kses_post( UserMeta::WhitelistTitle ); ?></span>
+				</label>
+			</fieldset>
+		</td>
+	</tr>
+<?php
+
 	}
 
 	/**
@@ -205,11 +216,42 @@ class Persistence {
 	 */
 	static function save_user_meta ( $user_id ) {
 
-		$status = isset( $_POST[ UserMeta::MemberStatus ] ) ? $_POST[ UserMeta::MemberStatus ] : MemberStatus::Normal;
-		$whitelist = ( isset( $_POST[ UserMeta::Whitelist ] ) ) ? $_POST[ UserMeta::Whitelist ] : '';
+		// Get status
+		$status = MemberStatus::Normal;
 
+		if ( isset( $_POST[ UserMeta::MemberStatus ] ) ) {
+			$status = sanitize_text_field( $_POST[ UserMeta::MemberStatus ] );
+		}
+
+		// Get whitelist
+		$whitelist = '';
+
+		if ( isset( $_POST[ UserMeta::Whitelist ] ) ) {
+			$whitelist = sanitize_text_field( $_POST[ UserMeta::Whitelist ] );
+		}
+
+		// Set
 		self::set_member_status( $user_id, $status );
 		self::set_user_whitelist( $user_id, $whitelist );
+
+	}
+
+	/**
+	 * @param string $option_name
+	 *
+	 * @return string
+	 */
+	static function get_option( $option_name ) {
+
+		$settings = get_option( SettingsMeta::OptionName, array() );
+
+		$setting = '';
+
+		if ( ! empty( $settings[ $option_name ] ) ) {
+			$setting = $settings[ $option_name ];
+		}
+
+		return $setting;
 
 	}
 
@@ -217,18 +259,18 @@ class Persistence {
 	 * @return string
 	 */
 	static function get_global_whitelist() {
-		
-		$settings = get_option( SettingsMeta::OptionName, array() );
-		return $settings[ SettingsFields::GlobalWhitelistID ];
+
+		return self::get_option( SettingsFields::GlobalWhitelistID );
+
 	}
 
 	/**
 	 * @return string
 	 */
 	static function get_authentication_message () {
-		
-		$settings = get_option( SettingsMeta::OptionName, array() );
-		return $settings[ SettingsFields::AuthenticationMessageID ];
+
+		return self::get_option( SettingsFields::AuthenticationMessageID );
+
 	}
 
 	/**
@@ -236,8 +278,8 @@ class Persistence {
 	 */
 	static function get_locked_redirect_url () {
 
-		$settings = get_option( SettingsMeta::OptionName, array() );
-		return $settings[ SettingsFields::LockedRedirectURLID ];
+		return self::get_option( SettingsFields::LockedRedirectURLID );
+
 	}
 
 	/**
@@ -245,8 +287,8 @@ class Persistence {
 	 */
 	static function get_disabled_redirect_url () {
 
-		$settings = get_option( SettingsMeta::OptionName, array() );
-		return $settings[ SettingsFields::DisabledRedirectURLID ];
+		return self::get_option( SettingsFields::DisabledRedirectURLID );
+
 	}
 
 	/**
@@ -257,6 +299,7 @@ class Persistence {
 	static function get_user_whitelist ( $user_id ) {
 
 		return get_user_meta( $user_id, UserMeta::Whitelist, true );
+
 	}
 
 	/**
@@ -266,6 +309,7 @@ class Persistence {
 	static function set_user_whitelist ( $user_id, $whitelist ) {
 
 		update_user_meta( $user_id, UserMeta::Whitelist, $whitelist );
+
 	}
 
 	/**
@@ -274,16 +318,16 @@ class Persistence {
 	 * @return mixed
 	 */
 	static function get_member_status( $user_id ) {
-		
-		$meta = get_user_meta( $user_id, UserMeta::MemberStatus, true );
-		
+
+		$status = get_user_meta( $user_id, UserMeta::MemberStatus, true );
+
 		// Default to 'member' if they don't have any meta saved at all
-		if ( '' === $meta ) {
-			
-			return MemberStatus::Normal;
+		if ( '' === $status || ! defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) ) ) {
+			$status = MemberStatus::Normal;
 		}
-		
-		return $meta;
+
+		return $status;
+
 	}
 
 	/**
@@ -291,8 +335,16 @@ class Persistence {
 	 * @param mixed $status
 	 */
 	static function set_member_status( $user_id, $status ) {
-		
-		update_user_meta( $user_id, UserMeta::MemberStatus, $status);
+
+		// Check if status exists, if it does then enforce the internal value
+		if ( $status && defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) ) ) {
+			$status = constant( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) );
+		} else {
+			$status = MemberStatus::Normal;
+		}
+
+		update_user_meta( $user_id, UserMeta::MemberStatus, $status );
+
 	}
-	
+
 }

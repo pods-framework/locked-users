@@ -15,50 +15,49 @@ class Plugin {
 		self::add_filters();
 
 		if ( is_user_logged_in() ) {
-			
-			$user_id = get_current_user_id();	
-			
+			$user_id = get_current_user_id();
 		} elseif ( false /* check for hash + user id in query vars */ ) {
-			
 			// ToDo: need to validate the user and hash info here and set the user ID properly
 			$user_id = get_current_user_id();
-			
 		} else {
-			
 			// Not logged in and not a hash code access attempt
 			return;
 		}
-		
+
+		$uri = $_SERVER['REQUEST_URI'];
+
 		switch ( self::get_member_status( $user_id ) ) {
-			
+
 			case MemberStatus::Locked:
-				
-				// Check the whitelists	
-				if ( !self::is_whitelisted( $user_id, $_SERVER[ 'REQUEST_URI' ] ) ) {
-				
+
+				// Check the whitelists
+				if ( ! self::is_whitelisted( $user_id, $uri ) ) {
 					// Avoid redirect loop
-					if ( Persistence::get_locked_redirect_url() != $_SERVER[ 'REQUEST_URI' ] ) {
-						
-						wp_redirect( Persistence::get_locked_redirect_url() );
-						wp_die();
+					if ( Persistence::get_locked_redirect_url() != $uri ) {
+						$redirect_url = Persistence::get_locked_redirect_url();
+
+						wp_redirect( $redirect_url );
+						die();
 					}
-					
 				}
+
 				break;
-			
+
 			case MemberStatus::Disabled:
 
 				// They have no access but avoid a redirect loop
 				// ToDo: since we don't check any whitelist we still have a problem with disabled users and the user switching plugin, not a prob for locked users as you can whitelist the url
-				if ( $_SERVER[ 'REQUEST_URI' ] != Persistence::get_disabled_redirect_url() ) {
-					
-					wp_redirect( Persistence::get_disabled_redirect_url() );
-					wp_die();
+				if ( Persistence::get_disabled_redirect_url() != $uri ) {
+					$redirect_url = Persistence::get_disabled_redirect_url();
+
+					wp_redirect( $redirect_url );
+					die();
 				}
+
 				break;
 
 			case MemberStatus::Normal:
-				
+
 				// Business as usual
 				break;
 		}
@@ -71,6 +70,7 @@ class Plugin {
 	static function add_actions () {
 
 		// Nothing yet but still anticipated
+
 	}
 
 	/**
@@ -79,9 +79,10 @@ class Plugin {
 	static function add_filters () {
 
 		add_filter( 'allow_password_reset', array( __CLASS__, 'allow_password_reset' ), 10, 2 );
-		add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30, 3 );
+		add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30 );
+
 	}
-	
+
 	/**
 	 * WordPress allow_password_reset filter
 	 *
@@ -93,34 +94,31 @@ class Plugin {
 	static function allow_password_reset ( $allow, $user_id ) {
 
 		if ( MemberStatus::Normal != self::get_member_status( $user_id ) ) {
-			return false;
+			$allow = false;
 		}
-		else {
-			return $allow;
-		}
+
+		return $allow;
+
 	}
 
 	/**
 	 * WordPress authenticate filter
-	 * 
+	 *
 	 * @param \WP_User|\WP_Error $user
-	 * @param string $username
-	 * @param string $password
 	 *
 	 * @return \WP_User|\WP_Error
 	 */
-	static function authenticate( $user, $username, $password ) {
-		
-		if ( is_a( $user, 'WP_User') ) {
-			
+	static function authenticate( $user ) {
+
+		if ( is_a( $user, 'WP_User' ) ) {
 			if ( MemberStatus::Normal != self::get_member_status( $user->ID ) ) {
-				
 				// ToDo: get rid of implicit dependency on Persistence
 				$user = new \WP_Error( 'Locked Users', Persistence::get_authentication_message() );
 			}
 		}
-		
+
 		return $user;
+
 	}
 
 	/**
@@ -129,7 +127,7 @@ class Plugin {
 	 * @param string $url The URL to be tested against the consolidated whitelist for this user
 	 *
 	 * @return Boolean
-	 * 
+	 *
 	 * ToDo: Implicit dependency on Persistence
 	 */
 	static function is_whitelisted( $user_id, $url ) {
@@ -139,15 +137,15 @@ class Plugin {
 		$whitelist = array_filter( array_merge( $global_whitelist, $user_whitelist ) );
 
 		foreach ( $whitelist as $this_pattern ) {
-
 			$this_pattern = sprintf( '`^%s$`', $this_pattern ); // Delimiting our regex with backticks here... potential issues, better solution?
-			if ( preg_match( $this_pattern, $url ) ) {
 
+			if ( preg_match( $this_pattern, $url ) ) {
 				return true;
 			}
 		}
 
 		return false;
+
 	}
 
 	/**
@@ -159,6 +157,7 @@ class Plugin {
 
 		// ToDo: implicit dependency
 		return Persistence::get_member_status( $user_id );
+
 	}
 
 	/**
@@ -169,6 +168,7 @@ class Plugin {
 
 		// ToDo: implicit dependency
 		Persistence::set_member_status( $user_id, $status );
+
 	}
 
 }

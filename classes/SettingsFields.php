@@ -18,4 +18,5 @@ abstract class SettingsFields {
 	// Page to redirect to on unauthorized page view attempts for disabled users
 	const DisabledRedirectURLID = 'locked_users_disabled_redirect_url';
 	const DisabledRedirectURLTitle = 'Redirect URL for disabled users';
+
 }
