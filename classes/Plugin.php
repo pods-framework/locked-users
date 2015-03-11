@@ -79,7 +79,7 @@ class Plugin {
 	static function add_filters () {
 
 		add_filter( 'allow_password_reset', array( __CLASS__, 'allow_password_reset' ), 10, 2 );
-		//add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30, 3 );
+		add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 30, 3 );
 	}
 	
 	/**
