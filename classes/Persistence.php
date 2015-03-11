@@ -185,6 +185,11 @@ class Persistence {
 	 */
 	static function personal_options ( $user ) {
 
+		// Don't allow locking for admins
+		if ( is_super_admin( $user->ID ) || user_can( $user, 'manage_options' ) ) {
+			return;
+		}
+
 		$user_status = self::get_member_status( $user->ID );
 ?>
 	<tr class="locked-users">
@@ -215,6 +220,11 @@ class Persistence {
 	 * @param int $user_id User ID.
 	 */
 	static function save_user_meta ( $user_id ) {
+
+		// Don't allow locking for admins
+		if ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
+			return;
+		}
 
 		// Get status
 		$status = MemberStatus::Normal;
@@ -321,9 +331,13 @@ class Persistence {
 
 		$status = get_user_meta( $user_id, UserMeta::MemberStatus, true );
 
-		// Default to 'member' if they don't have any meta saved at all
-		if ( '' === $status || ! defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) ) ) {
+		// Default to 'member' if they don't have any meta saved at all, or if they are a super admin
+		if ( '' === $status || is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
 			$status = MemberStatus::Normal;
+		} elseif ( ! defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) )
+		           && true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
+			// Disable users if status is not supported, better option than to allow full access as normal user
+			$status = MemberStatus::Disabled;
 		}
 
 		return $status;
@@ -339,8 +353,12 @@ class Persistence {
 		// Check if status exists, if it does then enforce the internal value
 		if ( $status && defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) ) ) {
 			$status = constant( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) );
-		} else {
-			$status = MemberStatus::Normal;
+		} elseif ( true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
+			// Bail, do not update, we don't want to unlock/change users if the status is not supported
+			return;
+		} elseif ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
+			// Admins cannot be locked or disabled
+			return;
 		}
 
 		update_user_meta( $user_id, UserMeta::MemberStatus, $status );
