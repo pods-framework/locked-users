@@ -1,0 +1,31 @@
+{
+    "name": "pods-framework/locked-users",
+    "description": "Locked users lets you create user accounts that will have no ability to login, reset password, or access any pages on a site -- except for a whitelist of pages and any added to the specific user -- access to the site will be explicitly given through function calls that get sent via e-mail with a unique keyed link",
+    "type": "wordpress-plugin",
+    "keywords" : [ "users" ],
+    "homepage" : "http://pods.io/",
+    "license": "GPL2",
+    "authors": [
+        {
+            "name" : "Scott Kingsley Clark",
+            "email" : "scott@pods.io",
+            "homepage" : "http://scottkclark.com/"
+        },
+        {
+            "author" : "Nikhil Vimal",
+            "homepage": "nik.techvoltz.com"
+        },
+        {
+            "name" : "PG Lewis",
+        },
+
+
+    ],
+    "require": {
+        "php" : ">=5.4"
+    },
+    "support" : {
+        "issues": "https://github.com/pods-framework/locked-users/issues",
+        "source": "https://github.com/pods-framework/locked-users/pulls"
+    }
+}
