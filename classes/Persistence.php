@@ -1,8 +1,6 @@
 <?php
 namespace LockedUsers;
 
-// ToDo: Get rid of the implicit dependency on Plugin
-
 /**
  * Currently manages both the settings and the usermeta
  */
@@ -152,9 +150,7 @@ class Persistence {
 	/**
 	 * Called by the personal_options action
 	 *
-	 * @param  object $user The user object for the user currently being edited.
-	 * 
-	 * ToDo: Get rid of the implicit dependency on Plugin
+	 * @param object $user The user object for the user currently being edited.
 	 */
 	static function personal_options ( $user ) {
 		
