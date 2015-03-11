@@ -151,15 +151,6 @@ class Plugin {
 	}
 
 	/**
-	 *
-	 */
-	static function access_redirect() {
-
-		// ToDo: implicit dependency
-		wp_redirect( Persistence::get_redirect_url() );
-	}
-	
-	/**
 	 * @param int $user_id User ID.
 	 *
 	 * @return int
