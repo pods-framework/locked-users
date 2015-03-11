@@ -16,15 +16,27 @@ class Plugin {
 
 		//--!! Prototype, testing only below
 		$current_user_id = get_current_user_id();
-		
-		// ToDo: needs to be multi-state (normal, provisional, disabled)
-		if ( true == self::get_locked_status( $current_user_id ) ) {
-
-			if ( !self::is_whitelisted( $current_user_id, $_SERVER[ 'REQUEST_URI' ] ) ) {
+		switch ( self::get_member_status( $current_user_id ) ) {
+			
+			case MemberStatus::Probationary:
 				
-				//wp_die( 'Nope, nope.' );
-			}
+				// Check the whitelists	
+				if ( !self::is_whitelisted( $current_user_id, $_SERVER[ 'REQUEST_URI' ] ) ) {
+				
+					self::access_redirect();
+				}
+				break;
+			
+			case MemberStatus::Disabled:
 
+				// They have no access
+				self::access_redirect();
+				break;
+
+			case MemberStatus::Member:
+				
+				// Business as usual
+				break;
 		}
 
 	}
@@ -56,7 +68,7 @@ class Plugin {
 	 */
 	static function allow_password_reset ( $allow, $user_id ) {
 
-		if ( self::get_locked_status( $user_id ) ) {
+		if ( MemberStatus::Member != self::get_member_status( $user_id ) ) {
 			return false;
 		}
 		else {
@@ -75,10 +87,9 @@ class Plugin {
 	 */
 	static function authenticate( $user, $username, $password ) {
 		
-		// ToDo: locked user status checking
 		if ( is_a( $user, 'WP_User') ) {
 			
-			if ( self::get_locked_status( $user->ID ) ) {
+			if ( MemberStatus::Member != self::get_member_status( $user->ID ) ) {
 				
 				// ToDo: get rid of implicit dependency on Persistence
 				$user = new \WP_Error( 'Locked Users', Persistence::get_authentication_message() );
@@ -93,7 +104,9 @@ class Plugin {
 	 *
 	 * @param string $url The URL to be tested against the consolidated whitelist for this user
 	 *
-	 * @return bool
+	 * @return Boolean
+	 * 
+	 * ToDo: Implicit dependency on Persistence
 	 */
 	static function is_whitelisted( $user_id, $url ) {
 
@@ -113,25 +126,34 @@ class Plugin {
 		return false;
 	}
 
-	// ToDo: these should transition to the multi-state get_user_status/set_user_status and be handled by the Persistence class 
+	/**
+	 *
+	 */
+	static function access_redirect() {
+
+		// ToDo: implicit dependency
+		wp_redirect( Persistence::get_redirect_url() );
+	}
 	
 	/**
 	 * @param int $user_id User ID.
 	 *
-	 * @return Boolean
+	 * @return int
 	 */
-	static function get_locked_status ( $user_id ) {
+	static function get_member_status ( $user_id ) {
 
-		return (Bool) get_user_meta( $user_id, UserMeta::Locked, true );
+		// ToDo: implicit dependency
+		return Persistence::get_member_status( $user_id );
 	}
 
 	/**
 	 * @param int $user_id User ID.
-	 * @param Boolean $locked
+	 * @param int $status
 	 */
-	static function set_locked_status ( $user_id, $locked ) {
+	static function set_member_status ( $user_id, $status ) {
 
-		update_user_meta( $user_id, UserMeta::Locked, $locked );
+		// ToDo: implicit dependency
+		Persistence::set_member_status( $user_id, $status );
 	}
-	
+
 }

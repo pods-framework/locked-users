@@ -3,9 +3,8 @@ namespace LockedUsers;
 
 abstract class UserMeta {
 
-	const Locked = 'locked_user_locked';
-	const LockedTitle = 'Lock this user';
+	const MemberStatus = 'locked_user_member_status';
 	
 	const Whitelist = 'locked_user_whitelist';
-	const WhitelistTitle = 'List of allowed URLs, one per line';
+	const WhitelistTitle = 'List of allowed URLs, one per line (regex allowed)';
 }

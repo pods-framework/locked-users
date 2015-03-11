@@ -157,17 +157,23 @@ class Persistence {
 	 * ToDo: Get rid of the implicit dependency on Plugin
 	 */
 	static function personal_options ( $user ) {
+		
+		$user_status = self::get_member_status( $user->ID );
 		?>
 		<tr class="locked-users">
 			<th scope="row">Locked Users</th>
 			<td>
 				<fieldset>
-					<label for="<?= UserMeta::Locked; ?>">
-						<input name="<?= UserMeta::Locked; ?>" type="checkbox" id="locked-user" value="1" <?php checked( Plugin::get_locked_status( $user->ID ) ); ?> />
-						<?= UserMeta::LockedTitle; ?>
+					<label for="<?= UserMeta::MemberStatus; ?>">
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Member; ?>" <?php checked( MemberStatus::Member, $user_status ); ?> /> Member
+						<br>
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Probationary; ?>" <?php checked( MemberStatus::Probationary, $user_status ); ?> /> Probationary
+						<br>
+						<input name="<?= UserMeta::MemberStatus; ?>" type="radio" value="<?= MemberStatus::Disabled; ?>" <?php checked( MemberStatus::Disabled, $user_status ); ?> /> Disabled
+						<br>
 					</label> 
 					<br> 
-					<label for="locked-user-whitelist">
+					<label for="<? UserMeta::Whitelist; ?>">
 						<textarea name="<?= UserMeta::Whitelist; ?>" rows="8"><?= esc_textarea( self::get_user_whitelist( $user->ID ) ); ?></textarea>
 						<br> <span class="description"><?= UserMeta::WhitelistTitle; ?></span>
 					</label>
@@ -182,11 +188,10 @@ class Persistence {
 	 */
 	static function save_user_meta ( $user_id ) {
 
-		$locked = isset( $_POST[ UserMeta::Locked ] ) ? 1 : 0;
+		$status = isset( $_POST[ UserMeta::MemberStatus ] ) ? $_POST[ UserMeta::MemberStatus ] : MemberStatus::Member;
 		$whitelist = ( isset( $_POST[ UserMeta::Whitelist ] ) ) ? $_POST[ UserMeta::Whitelist ] : '';
 
-		// ToDo: Get rid of the implicit dependency on Plugin
-		Plugin::set_locked_status( $user_id, $locked );
+		self::set_member_status( $user_id, $status );
 		self::set_user_whitelist( $user_id, $whitelist );
 
 	}
@@ -239,18 +244,29 @@ class Persistence {
 
 	/**
 	 * @param int $user_id
+	 *
+	 * @return mixed
 	 */
 	static function get_member_status( $user_id ) {
-
+		
+		$meta = get_user_meta( $user_id, UserMeta::MemberStatus, true );
+		
+		// Default to 'member' if they don't have any meta saved at all
+		if ( '' === $meta ) {
+			
+			return MemberStatus::Member;
+		}
+		
+		return $meta;
 	}
 
 	/**
 	 * @param int $user_id
 	 * @param mixed $status
-	 * @param string $optional_role
 	 */
-	static function set_member_status( $user_id, $status, $optional_role = '' ) {
-
+	static function set_member_status( $user_id, $status ) {
+		
+		update_user_meta( $user_id, UserMeta::MemberStatus, $status);
 	}
 	
 }
