@@ -24,9 +24,14 @@ class Persistence {
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
 
 		/* User meta updates */
-		add_action( 'personal_options', array( __CLASS__, 'personal_options' ) );
-		add_action( 'personal_options_update', array( __CLASS__, 'save_user_meta' ) );
-		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_meta' ) );
+		$disable_user_profile = false;
+		$disable_user_profile = apply_filters( 'disable_user_profile', $disable_user_profile );
+		if ( ! $disable_user_profile ) {
+
+			add_action( 'personal_options', array( __CLASS__, 'personal_options' ) );
+			add_action( 'personal_options_update', array( __CLASS__, 'save_user_meta' ) );
+			add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_meta' ) );
+		}
 
 	}
 
