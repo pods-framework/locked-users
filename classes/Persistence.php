@@ -253,7 +253,7 @@ class Persistence implements PersistenceInterface {
 		$whitelist = '';
 		if ( isset( $_POST[ UserMeta::WHITELIST ] ) ) {
 
-			$whitelist = sanitize_text_field( $_POST[ UserMeta::WHITELIST ] );
+			$whitelist = strip_tags( $_POST[ UserMeta::WHITELIST ] );
 
 		}
 

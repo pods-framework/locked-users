@@ -127,11 +127,10 @@ class Plugin {
 
 			// Verify that the supplied user ID and access hash match
 			$matching_user = get_users( array(
-					'include'    => array( $user_id ),
-					'meta_key'   => UserMeta::ACCESS_HASH,
-					'meta_value' => $access_hash
-				)
-			);
+				'include'    => array( $user_id ),
+				'meta_key'   => UserMeta::ACCESS_HASH,
+				'meta_value' => $access_hash
+			) );
 
 			// We have the right query args but can't find the associated user
 			if ( empty( $matching_user ) ) {
@@ -145,6 +144,9 @@ class Plugin {
 			wp_set_auth_cookie( $user_id );
 
 			do_action( 'wp_login', $matching_user->user_login );
+
+			// Strip the query args so we can test the url against the whitelists
+			$url = remove_query_arg( array( QueryArgs::USER_ID, QueryArgs::ACCESS_HASH ), $url );
 		}
 
 		// User ID omitted and we didn't find them via the access hash?
@@ -219,9 +221,7 @@ class Plugin {
 
 		foreach ( $whitelist as $this_pattern ) {
 
-			$this_pattern = sprintf( '`^%s$`', $this_pattern ); // Delimiting our regex with backticks here... potential issues, better solution?
-
-			if ( preg_match( $this_pattern, $url ) ) {
+			if ( preg_match( '/^' . preg_quote( $this_pattern, '/' ) . '$/', $url ) ) {
 				return true;
 			}
 
@@ -259,6 +259,24 @@ class Plugin {
 
 			// ToDo: what to do when the specified user has no saved hash
 
+		}
+
+		// Check to see if the URL is already whitelisted for this user
+		$already_whitelisted = false;
+		$user_whitelist = Persistence::get_user_whitelist( $user_id );
+		$user_whitelist_array = explode( "\r\n",  $user_whitelist );
+		foreach ( $user_whitelist_array as $this_pattern ) {
+
+			// Set the flag and early exit if we find the target
+			if ( $this_pattern == $url ) {
+				$already_whitelisted = true;
+				break;
+			}
+		}
+
+		// Add the url to the user's whitelist if it wasn't already
+		if ( ! $already_whitelisted ) {
+			Persistence::set_user_whitelist( $user_id, $user_whitelist . "\n" . $url );
 		}
 
 		return add_query_arg( array( QueryArgs::ACCESS_HASH => $access_hash, QueryArgs::USER_ID => $user_id ), $url );

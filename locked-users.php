@@ -36,7 +36,6 @@ if ( ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
 	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'init' ) );
 }
 
-// ToDo:
 // ToDo: User ID generation business rules
 
 /*
