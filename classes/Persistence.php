@@ -4,12 +4,12 @@ namespace LockedUsers;
 /**
  * Currently manages both the settings and the usermeta
  */
-class Persistence {
+class Persistence implements PersistenceInterface {
 
 	/**
-	 * Called on the plugins_loaded action
+	 *
 	 */
-	static function plugins_loaded () {
+	static function init () {
 
 		self::add_actions();
 
@@ -24,14 +24,9 @@ class Persistence {
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
 
 		/* User meta updates */
-		$disable_user_profile = false;
-		$disable_user_profile = apply_filters( 'disable_user_profile', $disable_user_profile );
-		if ( ! $disable_user_profile ) {
-
-			add_action( 'personal_options', array( __CLASS__, 'personal_options' ) );
-			add_action( 'personal_options_update', array( __CLASS__, 'save_user_meta' ) );
-			add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_meta' ) );
-		}
+		add_action( 'personal_options', array( __CLASS__, 'personal_options' ) );
+		add_action( 'personal_options_update', array( __CLASS__, 'save_user_meta' ) );
+		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_meta' ) );
 
 	}
 
@@ -41,49 +36,49 @@ class Persistence {
 	static function admin_init () {
 
 		add_settings_section(
-			SettingsMeta::OptionSectionGeneral,     // ID
-			SettingsMeta::SectionGeneralTitle,      // title
+			SettingsMeta::OPTION_SECTION_GENERAL,     // ID
+			SettingsMeta::SECTION_GENERAL_TITLE,      // title
 			array( __CLASS__, 'section_general' ),  // callback
-			SettingsMeta::OptionMenuPage            // page
+			SettingsMeta::OPTION_MENU_PAGE            // page
 		);
 
 		// Global whitelist
 		add_settings_field(
-			SettingsFields::GlobalWhitelistID,             // ID
-			SettingsFields::GlobalWhitelistTitle,          // Title
+			SettingsFields::GLOBAL_WHITELIST_ID,             // ID
+			SettingsFields::GLOBAL_WHITELIST_TITLE,          // Title
 			array( __CLASS__, 'field_global_whitelist' ),  // callback
-			SettingsMeta::OptionMenuPage,                  // page
-			SettingsMeta::OptionSectionGeneral             // section
+			SettingsMeta::OPTION_MENU_PAGE,                  // page
+			SettingsMeta::OPTION_SECTION_GENERAL             // section
 		);
 
 		// Authentication message on unauthorized login attempt
 		add_settings_field(
-			SettingsFields::AuthenticationMessageID,             // ID
-			SettingsFields::AuthenticationMessageTitle,          // Title
+			SettingsFields::AUTHENTICATION_MESSAGE_ID,             // ID
+			SettingsFields::AUTHENTICATION_MESSAGE_TITLE,          // Title
 			array( __CLASS__, 'field_authentication_message' ),  // callback
-			SettingsMeta::OptionMenuPage,                        // page
-			SettingsMeta::OptionSectionGeneral                   // section
+			SettingsMeta::OPTION_MENU_PAGE,                        // page
+			SettingsMeta::OPTION_SECTION_GENERAL                   // section
 		);
 
 		// URL to redirect to on unauthorized page access attempts for locked users
 		add_settings_field(
-			SettingsFields::LockedRedirectURLID,              // ID
-			SettingsFields::LockedRedirectURLTitle,           // Title
+			SettingsFields::LOCKED_REDIRECT_URL_ID,              // ID
+			SettingsFields::LOCKED_REDIRECT_URL_TITLE,           // Title
 			array( __CLASS__, 'field_locked_redirect_url' ),  // callback
-			SettingsMeta::OptionMenuPage,                     // page
-			SettingsMeta::OptionSectionGeneral                // section
+			SettingsMeta::OPTION_MENU_PAGE,                     // page
+			SettingsMeta::OPTION_SECTION_GENERAL                // section
 		);
 
 		// URL to redirect to on unauthorized page access attempts for disabled users
 		add_settings_field(
-			SettingsFields::DisabledRedirectURLID,              // ID
-			SettingsFields::DisabledRedirectURLTitle,           // Title
+			SettingsFields::DISABLED_REDIRECT_URL_ID,              // ID
+			SettingsFields::DISABLED_REDIRECT_URL_TITLE,           // Title
 			array( __CLASS__, 'field_disabled_redirect_url' ),  // callback
-			SettingsMeta::OptionMenuPage,                       // page
-			SettingsMeta::OptionSectionGeneral                  // section
+			SettingsMeta::OPTION_MENU_PAGE,                       // page
+			SettingsMeta::OPTION_SECTION_GENERAL                  // section
 		);
 
-		register_setting( SettingsMeta::OptionGroup, SettingsMeta::OptionName );
+		register_setting( SettingsMeta::OPTION_GROUP, SettingsMeta::OPTION_NAME );
 
 	}
 
@@ -96,7 +91,7 @@ class Persistence {
 			'Locked User Settings',              // page title
 			'Locked User Settings',              // menu title
 			'manage_options',                    // cap
-			SettingsMeta::OptionMenuPage,        // menu slug
+			SettingsMeta::OPTION_MENU_PAGE,        // menu slug
 			array( __CLASS__, 'settings_page' )  // callback
 		);
 
@@ -113,8 +108,8 @@ class Persistence {
 		<h2>Locked User Settings</h2>
 
 		<form method="post" action="options.php">
-			<?php settings_fields( SettingsMeta::OptionGroup ); ?>
-			<?php do_settings_sections( SettingsMeta::OptionMenuPage ); ?>
+			<?php settings_fields( SettingsMeta::OPTION_GROUP ); ?>
+			<?php do_settings_sections( SettingsMeta::OPTION_MENU_PAGE ); ?>
 			<?php submit_button(); ?>
 		</form>
 	</div>
@@ -140,7 +135,7 @@ class Persistence {
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
 
-		echo sprintf( $textarea_template, SettingsMeta::OptionName, SettingsFields::GlobalWhitelistID, esc_textarea( $option_value ) );
+		echo sprintf( $textarea_template, SettingsMeta::OPTION_NAME, SettingsFields::GLOBAL_WHITELIST_ID, esc_textarea( $option_value ) );
 
 	}
 
@@ -153,7 +148,7 @@ class Persistence {
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
 
-		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::AuthenticationMessageID ), esc_textarea( $option_value ) );
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OPTION_NAME ), esc_attr( SettingsFields::AUTHENTICATION_MESSAGE_ID ), esc_textarea( $option_value ) );
 
 	}
 
@@ -166,7 +161,7 @@ class Persistence {
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
 
-		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::LockedRedirectURLID ), esc_textarea( $option_value ) );
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OPTION_NAME ), esc_attr( SettingsFields::LOCKED_REDIRECT_URL_ID ), esc_textarea( $option_value ) );
 
 	}
 
@@ -179,7 +174,7 @@ class Persistence {
 
 		$textarea_template = '<textarea cols="40" rows="5" name="%s[%s]">%s</textarea>';
 
-		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OptionName ), esc_attr( SettingsFields::DisabledRedirectURLID ), esc_textarea( $option_value ) );
+		echo sprintf( $textarea_template, esc_attr( SettingsMeta::OPTION_NAME ), esc_attr( SettingsFields::DISABLED_REDIRECT_URL_ID ), esc_textarea( $option_value ) );
 
 	}
 
@@ -190,29 +185,34 @@ class Persistence {
 	 */
 	static function personal_options ( $user ) {
 
+		// Check for bypass via custom filter
+		if ( apply_filters( 'locked_users_disable_user_profile', false ) ) {
+			return;
+		}
+
 		// Don't allow locking for admins
 		if ( is_super_admin( $user->ID ) || user_can( $user, 'manage_options' ) ) {
 			return;
 		}
 
-		$user_status = self::get_member_status( $user->ID );
+		$user_status = self::get_user_status( $user->ID );
 ?>
 	<tr class="locked-users">
 		<th scope="row">Locked Users</th>
 		<td>
 			<fieldset>
-				<label for="<?php echo esc_attr( UserMeta::MemberStatus ); ?>">
-					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Normal ); ?>"<?php checked( MemberStatus::Normal, $user_status ); ?> />
+				<label for="<?php echo esc_attr( UserMeta::USER_STATUS ); ?>">
+					<input name="<?php echo esc_attr( UserMeta::USER_STATUS ); ?>" type="radio" value="<?php echo esc_attr( UserStatuses::NORMAL ); ?>"<?php checked( UserStatuses::NORMAL, $user_status ); ?> />
 					Normal<br />
-					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Locked ); ?>"<?php checked( MemberStatus::Locked, $user_status ); ?> />
+					<input name="<?php echo esc_attr( UserMeta::USER_STATUS ); ?>" type="radio" value="<?php echo esc_attr( UserStatuses::LOCKED ); ?>"<?php checked( UserStatuses::LOCKED, $user_status ); ?> />
 					Locked<br />
-					<input name="<?php echo esc_attr( UserMeta::MemberStatus ); ?>" type="radio" value="<?php echo esc_attr( MemberStatus::Disabled ); ?>"<?php checked( MemberStatus::Disabled, $user_status ); ?> />
+					<input name="<?php echo esc_attr( UserMeta::USER_STATUS ); ?>" type="radio" value="<?php echo esc_attr( UserStatuses::DISABLED ); ?>"<?php checked( UserStatuses::DISABLED, $user_status ); ?> />
 					Disabled<br />
 				</label>
 				<br>
-				<label for="<?php echo esc_attr( UserMeta::Whitelist ); ?>">
-					<textarea name="<?php echo esc_attr( UserMeta::Whitelist ); ?>" rows="8"><?php echo esc_textarea( self::get_user_whitelist( $user->ID ) ); ?></textarea>
-					<br /> <span class="description"><?php echo wp_kses_post( UserMeta::WhitelistTitle ); ?></span>
+				<label for="<?php echo esc_attr( UserMeta::WHITELIST ); ?>">
+					<textarea name="<?php echo esc_attr( UserMeta::WHITELIST ); ?>" rows="8"><?php echo esc_textarea( self::get_user_whitelist( $user->ID ) ); ?></textarea>
+					<br /> <span class="description"><?php echo wp_kses_post( UserMeta::WHITELIST_TITLE ); ?></span>
 				</label>
 			</fieldset>
 		</td>
@@ -226,27 +226,39 @@ class Persistence {
 	 */
 	static function save_user_meta ( $user_id ) {
 
+		// Check for bypass via custom filter
+		if ( apply_filters( 'locked_users_disable_user_profile', false ) ) {
+
+			// Bypass completely
+			return;
+
+		}
+
 		// Don't allow locking for admins
 		if ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
+
 			return;
+
 		}
 
 		// Get status
-		$status = MemberStatus::Normal;
+		$status = UserStatuses::NORMAL;
+		if ( isset( $_POST[ UserMeta::USER_STATUS ] ) ) {
 
-		if ( isset( $_POST[ UserMeta::MemberStatus ] ) ) {
-			$status = sanitize_text_field( $_POST[ UserMeta::MemberStatus ] );
+			$status = sanitize_text_field( $_POST[ UserMeta::USER_STATUS ] );
+
 		}
 
 		// Get whitelist
 		$whitelist = '';
+		if ( isset( $_POST[ UserMeta::WHITELIST ] ) ) {
 
-		if ( isset( $_POST[ UserMeta::Whitelist ] ) ) {
-			$whitelist = sanitize_text_field( $_POST[ UserMeta::Whitelist ] );
+			$whitelist = sanitize_text_field( $_POST[ UserMeta::WHITELIST ] );
+
 		}
 
 		// Set
-		self::set_member_status( $user_id, $status );
+		self::set_user_status( $user_id, $status );
 		self::set_user_whitelist( $user_id, $whitelist );
 
 	}
@@ -258,7 +270,7 @@ class Persistence {
 	 */
 	static function get_option( $option_name ) {
 
-		$settings = get_option( SettingsMeta::OptionName, array() );
+		$settings = get_option( SettingsMeta::OPTION_NAME, array() );
 
 		$setting = '';
 
@@ -275,7 +287,7 @@ class Persistence {
 	 */
 	static function get_global_whitelist() {
 
-		return self::get_option( SettingsFields::GlobalWhitelistID );
+		return self::get_option( SettingsFields::GLOBAL_WHITELIST_ID );
 
 	}
 
@@ -284,7 +296,7 @@ class Persistence {
 	 */
 	static function get_authentication_message () {
 
-		return self::get_option( SettingsFields::AuthenticationMessageID );
+		return self::get_option( SettingsFields::AUTHENTICATION_MESSAGE_ID );
 
 	}
 
@@ -293,7 +305,7 @@ class Persistence {
 	 */
 	static function get_locked_redirect_url () {
 
-		return self::get_option( SettingsFields::LockedRedirectURLID );
+		return self::get_option( SettingsFields::LOCKED_REDIRECT_URL_ID );
 
 	}
 
@@ -302,7 +314,7 @@ class Persistence {
 	 */
 	static function get_disabled_redirect_url () {
 
-		return self::get_option( SettingsFields::DisabledRedirectURLID );
+		return self::get_option( SettingsFields::DISABLED_REDIRECT_URL_ID );
 
 	}
 
@@ -313,7 +325,7 @@ class Persistence {
 	 */
 	static function get_user_whitelist ( $user_id ) {
 
-		return get_user_meta( $user_id, UserMeta::Whitelist, true );
+		return get_user_meta( $user_id, UserMeta::WHITELIST, true );
 
 	}
 
@@ -323,7 +335,28 @@ class Persistence {
 	 */
 	static function set_user_whitelist ( $user_id, $whitelist ) {
 
-		update_user_meta( $user_id, UserMeta::Whitelist, $whitelist );
+		update_user_meta( $user_id, UserMeta::WHITELIST, $whitelist );
+
+	}
+
+	/**
+	 * @param int $user_id User ID.
+	 *
+	 * @return mixed
+	 */
+	static function get_user_access_hash ( $user_id ) {
+
+		return get_user_meta( $user_id, UserMeta::ACCESS_HASH, true );
+
+	}
+
+	/**
+	 * @param int $user_id User ID.
+	 * @param string $access_hash The hash code to save
+	 */
+	static function set_user_access_hash ( $user_id, $access_hash ) {
+
+		update_user_meta( $user_id, UserMeta::ACCESS_HASH, $access_hash );
 
 	}
 
@@ -332,17 +365,19 @@ class Persistence {
 	 *
 	 * @return mixed
 	 */
-	static function get_member_status( $user_id ) {
+	static function get_user_status( $user_id ) {
 
-		$status = get_user_meta( $user_id, UserMeta::MemberStatus, true );
+		$status = get_user_meta( $user_id, UserMeta::USER_STATUS, true );
 
 		// Default to 'member' if they don't have any meta saved at all, or if they are a super admin
 		if ( '' === $status || is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
-			$status = MemberStatus::Normal;
-		} elseif ( ! defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) )
-		           && true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
+
+			$status = UserStatuses::NORMAL;
+
+		} elseif ( ! UserStatuses::user_status_exists( $status ) && true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
+
 			// Disable users if status is not supported, better option than to allow full access as normal user
-			$status = MemberStatus::Disabled;
+			$status = UserStatuses::DISABLED;
 		}
 
 		return $status;
@@ -351,22 +386,34 @@ class Persistence {
 
 	/**
 	 * @param int $user_id
-	 * @param mixed $status
+	 * @param mixed $new_status
 	 */
-	static function set_member_status( $user_id, $status ) {
+	static function set_user_status( $user_id, $new_status ) {
 
-		// Check if status exists, if it does then enforce the internal value
-		if ( $status && defined( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) ) ) {
-			$status = constant( __NAMESPACE__ . '\\MemberStatus::' . ucwords( $status ) );
-		} elseif ( true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
-			// Bail, do not update, we don't want to unlock/change users if the status is not supported
-			return;
-		} elseif ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
+		if ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
+
 			// Admins cannot be locked or disabled
 			return;
+
 		}
 
-		update_user_meta( $user_id, UserMeta::MemberStatus, $status );
+		$old_status = self::get_user_status( $user_id );
+
+		// Is the supplied user status invalid?
+		if ( !UserStatuses::user_status_exists( $new_status ) ) {
+
+			// Last ditch effort: has anything extended via filter to accept this status?
+			if ( true !== apply_filters( 'locked_users_status_supported', false, $new_status ) ) {
+
+				// This just isn't a valid status. Do not update, we don't want to unlock/change users if
+				// the status is not supported
+				return;
+
+			}
+		}
+
+		update_user_meta( $user_id, UserMeta::USER_STATUS, $new_status );
+		do_action( 'locked_users_user_status_change', $user_id, $old_status, $new_status );
 
 	}
 

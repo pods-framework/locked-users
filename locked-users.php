@@ -20,20 +20,23 @@ the Free Software Foundation; either version 2 of the License, or
 define( 'LOCKED_USERS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LOCKED_USERS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 
-require_once 'classes/MemberStatus.php';
+require_once 'classes/UserStatuses.php';
 require_once 'classes/UserMeta.php';
 require_once 'classes/SettingsMeta.php';
 require_once 'classes/SettingsFields.php';
-require_once 'classes/Plugin.php';
+require_once 'classes/QueryArgs.php';
+
+require_once 'classes/PersistenceInterface.php';
 require_once 'classes/Persistence.php';
+require_once 'classes/Plugin.php';
 
 // Hook plugins_loaded where needed and we're done
 if ( ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
-	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Plugin', 'plugins_loaded' ) );
-	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'plugins_loaded' ) );
+	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Plugin', 'init' ) );
+	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'init' ) );
 }
 
-// ToDo: Handle hash-code in the URL
+// ToDo:
 // ToDo: User ID generation business rules
 
 /*

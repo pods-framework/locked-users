@@ -3,9 +3,10 @@ namespace LockedUsers;
 
 abstract class UserMeta {
 
-	const MemberStatus = 'locked_user_member_status';
+	const USER_STATUS = 'locked_users_user_status';
+	const ACCESS_HASH = 'locked_users_access_hash';
 
-	const Whitelist = 'locked_user_whitelist';
-	const WhitelistTitle = 'List of allowed URLs, one per line (regex allowed)';
+	const WHITELIST = 'locked_users_whitelist';
+	const WHITELIST_TITLE = 'List of allowed URLs, one per line (regex allowed)';
 
 }
