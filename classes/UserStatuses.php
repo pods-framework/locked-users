@@ -26,23 +26,6 @@ abstract class UserStatuses {
 		}
 
 		return false;
-
-	}
-
-	static function get_status_by_value( $target_value ) {
-
-		$reflection = new \ReflectionClass( __CLASS__ );
-		$class_constants = $reflection->getConstants();
-
-		foreach( $class_constants as $this_constant => $this_value ) {
-
-			if ( $this_value === $target_value ) {
-
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 }
