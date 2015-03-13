@@ -73,7 +73,6 @@ class Plugin {
 
 				// ToDo: get rid of implicit dependency on Persistence
 				$user = new \WP_Error( 'Locked Users', Persistence::get_authentication_message() );
-
 			}
 		}
 
@@ -98,7 +97,6 @@ class Plugin {
 
 				// Assign a new hash
 				Persistence::set_user_access_hash( $user_id, self::generate_user_access_hash() );
-
 			}
 		}
 	}
@@ -224,7 +222,6 @@ class Plugin {
 			if ( preg_match( '/^' . preg_quote( $this_pattern, '/' ) . '$/', $url ) ) {
 				return true;
 			}
-
 		}
 
 		return false;
@@ -243,13 +240,11 @@ class Plugin {
 		if ( null === $user_id ) {
 
 			$user_id = get_current_user_id();
-
 		}
 
 		if ( false === get_userdata( $user_id ) ) {
 
 			// ToDo: what we do about invalid user ID or users that aren't logged in
-
 		}
 
 		// Get/generate the hash
@@ -258,25 +253,33 @@ class Plugin {
 		if ( empty( $access_hash ) ) {
 
 			// ToDo: what to do when the specified user has no saved hash
-
 		}
 
 		// Check to see if the URL is already whitelisted for this user
 		$already_whitelisted = false;
-		$user_whitelist = Persistence::get_user_whitelist( $user_id );
-		$user_whitelist_array = explode( "\r\n",  $user_whitelist );
-		foreach ( $user_whitelist_array as $this_pattern ) {
+		$whitelist_array = array();
+		$whitelist_string = Persistence::get_user_whitelist( $user_id );
 
-			// Set the flag and early exit if we find the target
-			if ( $this_pattern == $url ) {
-				$already_whitelisted = true;
-				break;
+		// If we call explode with the empty string we'll have a single element array with the empty string
+		// which fouls up the subsequent implode(), so just keep the array empty unless we have actual content
+		if ( ! empty( $whitelist_string ) ) {
+
+			$whitelist_array = explode( "\r\n",  $whitelist_string );
+			foreach ( $whitelist_array as $this_pattern ) {
+
+				// Set the flag and early exit if we find the target
+				if ( $this_pattern == $url ) {
+					$already_whitelisted = true;
+					break;
+				}
 			}
 		}
 
 		// Add the url to the user's whitelist if it wasn't already
 		if ( ! $already_whitelisted ) {
-			Persistence::set_user_whitelist( $user_id, $user_whitelist . "\n" . $url );
+
+			array_push( $whitelist_array, $url );
+			Persistence::set_user_whitelist( $user_id, implode( "\r\n", $whitelist_array ) );
 		}
 
 		return add_query_arg( array( QueryArgs::ACCESS_HASH => $access_hash, QueryArgs::USER_ID => $user_id ), $url );
@@ -289,6 +292,7 @@ class Plugin {
 	static function generate_user_access_hash() {
 
 		return wp_generate_password( 20, false, false );
+
 	}
 
 	/**
