@@ -231,14 +231,12 @@ class Persistence implements PersistenceInterface {
 
 			// Bypass completely
 			return;
-
 		}
 
 		// Don't allow locking for admins
 		if ( is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
 
 			return;
-
 		}
 
 		// Get status
@@ -246,7 +244,6 @@ class Persistence implements PersistenceInterface {
 		if ( isset( $_POST[ UserMeta::USER_STATUS ] ) ) {
 
 			$status = sanitize_text_field( $_POST[ UserMeta::USER_STATUS ] );
-
 		}
 
 		// Get whitelist
@@ -254,7 +251,6 @@ class Persistence implements PersistenceInterface {
 		if ( isset( $_POST[ UserMeta::WHITELIST ] ) ) {
 
 			$whitelist = strip_tags( $_POST[ UserMeta::WHITELIST ] );
-
 		}
 
 		// Set
@@ -373,7 +369,6 @@ class Persistence implements PersistenceInterface {
 		if ( '' === $status || is_super_admin( $user_id ) || user_can( $user_id, 'manage_options' ) ) {
 
 			$status = UserStatuses::NORMAL;
-
 		} elseif ( ! UserStatuses::user_status_exists( $status ) && true !== apply_filters( 'locked_users_status_supported', false, $status ) ) {
 
 			// Disable users if status is not supported, better option than to allow full access as normal user
@@ -394,7 +389,6 @@ class Persistence implements PersistenceInterface {
 
 			// Admins cannot be locked or disabled
 			return;
-
 		}
 
 		$old_status = self::get_user_status( $user_id );
