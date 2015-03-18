@@ -72,7 +72,7 @@ class Plugin {
 			if ( UserStatuses::NORMAL != self::get_user_status( $user->ID ) ) {
 
 				// ToDo: get rid of implicit dependency on Persistence
-				$user = new \WP_Error( 'Locked Users', Persistence::get_authentication_message() );
+				$user = new \WP_Error( __NAMESPACE__, Persistence::get_authentication_message() );
 			}
 		}
 
@@ -232,27 +232,24 @@ class Plugin {
 	 * @param $url
 	 * @param int|null $user_id User ID
 	 *
-	 * @return string
+	 * @return string|\WP_Error
 	 */
 	static function get_access_hash_url( $url, $user_id = null ) {
 
 		// Lookup the current user if no user was specified
 		if ( null === $user_id ) {
-
 			$user_id = get_current_user_id();
 		}
 
 		if ( false === get_userdata( $user_id ) ) {
-
-			// ToDo: what we do about invalid user ID or users that aren't logged in
+			return new \WP_Error( __NAMESPACE__, 'Invalid user ID or user not logged in' );
 		}
 
 		// Get/generate the hash
 		$access_hash = Persistence::get_user_access_hash( $user_id );
-
 		if ( empty( $access_hash ) ) {
-
-			// ToDo: what to do when the specified user has no saved hash
+			$access_hash = self::generate_user_access_hash();
+			Persistence::set_user_access_hash( $user_id, $access_hash );
 		}
 
 		// Check to see if the URL is already whitelisted for this user
@@ -277,7 +274,6 @@ class Plugin {
 
 		// Add the url to the user's whitelist if it wasn't already
 		if ( ! $already_whitelisted ) {
-
 			array_push( $whitelist_array, $url );
 			Persistence::set_user_whitelist( $user_id, implode( "\r\n", $whitelist_array ) );
 		}
