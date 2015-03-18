@@ -208,6 +208,7 @@ class Plugin {
 			return null;
 		}
 
+		// get_users will return an array but there will only be one element with the user ID supplied
 		return array_shift( $matching_user );
 
 	}
@@ -225,9 +226,9 @@ class Plugin {
 
 		$user_whitelist = explode( "\r\n", Persistence::get_user_whitelist( $user_id ) );
 		$global_whitelist = explode( "\r\n", Persistence::get_global_whitelist() );
-		$whitelist = array_filter( array_merge( $global_whitelist, $user_whitelist ) );
+		$consolidated_whitelist = array_filter( array_merge( $global_whitelist, $user_whitelist ) );
 
-		foreach ( $whitelist as $this_pattern ) {
+		foreach ( $consolidated_whitelist as $this_pattern ) {
 
 			if ( preg_match( '/^' . preg_quote( $this_pattern, '/' ) . '$/', $url ) ) {
 				return true;
@@ -244,8 +245,8 @@ class Plugin {
 	static function redirect_locked( $url ) {
 
 		// Avoid redirect loop
-		if ( Persistence::get_locked_redirect_url() != $url ) {
-			$redirect_url = Persistence::get_locked_redirect_url();
+		$redirect_url = Persistence::get_locked_redirect_url();
+		if ( $url != $redirect_url ) {
 			wp_redirect( $redirect_url );
 			die();
 		}
@@ -258,8 +259,8 @@ class Plugin {
 	static function redirect_disabled( $url ) {
 
 		// Avoid a redirect loop
-		if ( Persistence::get_disabled_redirect_url() != $url ) {
-			$redirect_url = Persistence::get_disabled_redirect_url();
+		$redirect_url = Persistence::get_disabled_redirect_url();
+		if ( $url != $redirect_url ) {
 			wp_redirect( $redirect_url );
 			die();
 		}
