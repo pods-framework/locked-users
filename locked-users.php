@@ -35,11 +35,3 @@ if ( ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
 	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Plugin', 'init' ) );
 	add_action( 'plugins_loaded', array( __NAMESPACE__ . '\\Persistence', 'init' ) );
 }
-
-// ToDo: User ID generation business rules
-
-/*
- * ID Generated from next chapter number. All members are Users.
- * New Users added are defined to a Chapter ID.
- * New Members aren't given passwords, temporary ID and specific unique hashcode for temporary access by email notification.
- */

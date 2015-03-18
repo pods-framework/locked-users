@@ -14,11 +14,6 @@ class Plugin {
 		self::add_actions();
 		self::add_filters();
 
-		// ToDo: This is here for prototyping only
-		if ( ! self::check_access( $_SERVER['REQUEST_URI'] ) ) {
-			wp_die( "access denied" );
-		}
-
 	}
 
 	/**
@@ -119,7 +114,7 @@ class Plugin {
 				wp_logout();
 			}
 
-			// ToDo: Evaluate sanitizing needs
+			// Grab info passed as query args
 			$access_hash = $_GET[ QueryArgs::ACCESS_HASH ];
 			$user_id = (int) $_GET[ QueryArgs::USER_ID ];
 
@@ -183,7 +178,8 @@ class Plugin {
 			case UserStatuses::DISABLED:
 
 				// They have no access but avoid a redirect loop
-				// ToDo: since we don't check any whitelist we still have a problem with disabled users and the user switching plugin, not a prob for locked users as you can whitelist the url
+				// ToDo: since we don't check any whitelist we still have a problem with disabled users
+				// ToDo: and the user switching plugin, not a prob for locked users as you can whitelist the url
 				if ( Persistence::get_disabled_redirect_url() != $url ) {
 
 					$redirect_url = Persistence::get_disabled_redirect_url();
@@ -202,6 +198,7 @@ class Plugin {
 		return true;
 
 	}
+
 	/**
 	 * @param string $url The URL to be tested against the consolidated whitelist for this user
 	 *
