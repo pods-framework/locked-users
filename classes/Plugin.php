@@ -262,7 +262,7 @@ class Plugin {
 
 		// If we call explode with the empty string we'll have a single element array with the empty string
 		// which fouls up the subsequent implode(), so just keep the array empty unless we have actual content
-		if ( ! empty( $whitelist_string ) ) {
+		if ( '' !== $whitelist_string ) {
 
 			$whitelist_array = explode( "\r\n",  $whitelist_string );
 			foreach ( $whitelist_array as $this_pattern ) {
