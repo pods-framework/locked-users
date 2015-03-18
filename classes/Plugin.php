@@ -98,39 +98,28 @@ class Plugin {
 
 	/**
 	 * @param string $url
+	 *
 	 * @param int $user_id User ID
-	 *
-	 * @return bool
-	 *
-	 * ToDo: Still needs clean-up and consistency (returning a boolean or doing the redirects, pick one)
 	 */
 	static function check_access( $url, $user_id = null ) {
 
 		// Do we have the required args for a special access page?
-		if ( ! empty( $_GET[ QueryArgs::ACCESS_HASH ] ) && ! empty( $_GET[ QueryArgs::USER_ID  ] ) ) {
+		if ( self::is_hash_access_page() ) {
 
 			// Log user out if they are already logged in
 			if ( is_user_logged_in() ) {
 				wp_logout();
 			}
 
-			// Grab info passed as query args
-			$access_hash = $_GET[ QueryArgs::ACCESS_HASH ];
+			// Attempt to get a WP_User object given the user ID and access hash
 			$user_id = (int) $_GET[ QueryArgs::USER_ID ];
+			$access_hash = $_GET[ QueryArgs::ACCESS_HASH ];
+			$matching_user = self::get_user_from_hash( $user_id, $access_hash );
 
-			// Verify that the supplied user ID and access hash match
-			$matching_user = get_users( array(
-				'include'    => array( $user_id ),
-				'meta_key'   => UserMeta::ACCESS_HASH,
-				'meta_value' => $access_hash
-			) );
-
-			// We have the right query args but can't find the associated user
+			// Behave the same as a disabled user if we can't verify a user/hash match
 			if ( empty( $matching_user ) ) {
-				return false; // Deny access
+				self::redirect_disabled( $url );
 			}
-
-			$matching_user = array_shift( $matching_user );
 
 			// Log the user in
 			wp_set_current_user( $user_id, $matching_user->user_login );
@@ -149,7 +138,7 @@ class Plugin {
 			if ( ! is_user_logged_in() ) {
 
 				// Not a logged in user nor an access hash, we should not deny access
-				return true;
+				return;
 			}
 
 			// Someone is logged in, get their ID
@@ -164,29 +153,17 @@ class Plugin {
 				// Check the whitelists
 				if ( ! self::is_whitelisted( $url, $user_id ) ) {
 
-					// Avoid redirect loop
-					if ( Persistence::get_locked_redirect_url() != $url ) {
-
-						$redirect_url = Persistence::get_locked_redirect_url();
-						wp_redirect( $redirect_url );
-						die();
-					}
+					// Locked user and the page isn't whitelisted
+					self::redirect_locked( $url );
 				}
 
 				break;
 
 			case UserStatuses::DISABLED:
 
-				// They have no access but avoid a redirect loop
 				// ToDo: since we don't check any whitelist we still have a problem with disabled users
 				// ToDo: and the user switching plugin, not a prob for locked users as you can whitelist the url
-				if ( Persistence::get_disabled_redirect_url() != $url ) {
-
-					$redirect_url = Persistence::get_disabled_redirect_url();
-					wp_redirect( $redirect_url );
-					die();
-				}
-
+				self::redirect_disabled( $url );
 				break;
 
 			case UserStatuses::NORMAL:
@@ -195,7 +172,43 @@ class Plugin {
 				break;
 		}
 
-		return true;
+	}
+
+	/**
+	 * @return bool
+	 */
+	static function is_hash_access_page() {
+
+		if ( ! empty( $_GET[ QueryArgs::ACCESS_HASH ] ) && ! empty( $_GET[ QueryArgs::USER_ID  ] ) ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * @param int $user_id
+	 *
+	 * @param string $access_hash
+	 *
+	 * @return \WP_User|null a WP_User object or null on invalid user or mismatched hash
+	 */
+	static function get_user_from_hash( $user_id, $access_hash ) {
+
+		// Verify that the supplied user ID and access hash match
+		$matching_user = get_users( array(
+			'include'    => array( (int) $user_id ),
+			'meta_key'   => UserMeta::ACCESS_HASH,
+			'meta_value' => (string) $access_hash
+		) );
+
+		// Can't find the associated user and/or the hash does not match
+		if ( empty( $matching_user ) ) {
+			return null;
+		}
+
+		return array_shift( $matching_user );
 
 	}
 
@@ -223,6 +236,33 @@ class Plugin {
 
 		return false;
 
+	}
+
+	/**
+	 * @param string $url The URL the user is viewing
+	 */
+	static function redirect_locked( $url ) {
+
+		// Avoid redirect loop
+		if ( Persistence::get_locked_redirect_url() != $url ) {
+			$redirect_url = Persistence::get_locked_redirect_url();
+			wp_redirect( $redirect_url );
+			die();
+		}
+
+	}
+
+	/**
+	 * @param string $url The URL the user is viewing
+	 */
+	static function redirect_disabled( $url ) {
+
+		// Avoid a redirect loop
+		if ( Persistence::get_disabled_redirect_url() != $url ) {
+			$redirect_url = Persistence::get_disabled_redirect_url();
+			wp_redirect( $redirect_url );
+			die();
+		}
 	}
 
 	/**
